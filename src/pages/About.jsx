@@ -11,8 +11,8 @@ const About = () => {
         <div className="absolute inset-0 bg-black opacity-50"></div>
         <div className="relative z-10 text-center p-6">
           <h1 className="text-5xl font-bold mb-4">About Bookify</h1>
-          <p className="text-lg">
-            Discover your next great read with Bookify.<br/> Our platform offers a seamless reading experience with a diverse selection of books.
+          <p className="text-lg text-wrap ">
+            Discover your next great read with Bookify.  Our platform offers a seamless reading experience with a diverse selection of books.
           </p>
         </div>
       </section>
@@ -83,8 +83,8 @@ const About = () => {
       {/* CTA Section */}
       <section className="py-16 bg-gray-800 text-white text-center">
         <h2 className="text-3xl font-bold mb-4">Get in Touch</h2>
-        <p className="text-lg mb-8">
-          Have any questions or feedback?<br/> We’d love to hear from you! Reach out to us through our contact page or follow us on social media.
+        <p className="text-lg mb-8 text-wrap">
+          Have any questions or feedback? We’d love to hear from you! Reach out to us through our contact page or follow us on social media.
         </p>
         <a className="group relative inline-flex border border-red-500 focus:outline-none   w-auto" href="/docs">
               <span className="md:w-full w-auto inline-flex items-center justify-center self-stretch px-4 py-2 text-sm text-white text-center uppercase bg-red-500 ring-1 ring-red-500 ring-offset-1 ring-offset-red-500 transform transition-transform group-hover:-translate-y-1 group-hover:-translate-x-1 group-focus:-translate-y-1 group-focus:-translate-x-1 mulish-regular">
