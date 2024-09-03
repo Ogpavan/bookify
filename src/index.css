@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+  scroll-behavior: smooth;
+}
 
 .cinzel-decorative-regular {
     font-family: "Cinzel Decorative", serif;

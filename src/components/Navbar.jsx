@@ -87,28 +87,36 @@ const Navbar = () => {
           <Link
             to="/"
             onClick={closeMobileMenu}
-            className={`text-lg mulish-regular ${location.pathname === '/' ? 'underline' : ''} md:ml-6`}
+            className={`text-lg mulish-regular ${location.pathname === '/' ? 'bg-gray-800 text-white px-2 py-1 rounded-full' : ''} md:ml-6`}
           >
             Home
           </Link>
           <Link
             to="/about"
             onClick={closeMobileMenu}
-            className={`text-lg mulish-regular ${location.pathname === '/about' ? 'underline' : ''} md:ml-6`}
+            className={`text-lg mulish-regular ${location.pathname === '/about' ? 'bg-gray-800 text-white px-2 py-1 rounded-full' : ''} md:ml-6`}
           >
             About
           </Link>
           <Link
             to="/login"
             onClick={closeMobileMenu}
-            className={`text-lg mulish-regular ${location.pathname === '/login' ? 'underline' : ''} md:ml-6`}
+            className={`text-lg mulish-regular ${location.pathname === '/login' ? 'bg-gray-800 text-white px-2 py-1 rounded-full' : ''} md:ml-6`}
           >
             Login
+          </Link>
+
+          <Link
+            to="/signup"
+            onClick={closeMobileMenu}
+            className={`text-lg mulish-regular ${location.pathname === '/signup' ? 'bg-gray-800 text-white px-2 py-1 rounded-full' : ''} md:ml-6`}
+          >
+            Signup
           </Link>
           <Link
             to="/bookmarks"
             onClick={closeMobileMenu}
-            className={`text-lg mulish-regular flex items-center ${location.pathname === '/bookmarks' ? 'underline' : ''} md:ml-6`}
+            className={`text-lg mulish-regular flex items-center ${location.pathname === '/bookmarks' ? 'bg-gray-800 text-white px-2 py-1 rounded-full' : ''} md:ml-6`}
           >
             <FaBookmark className="ml-1" />
           </Link>
