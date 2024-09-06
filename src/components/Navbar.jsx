@@ -1,40 +1,50 @@
-// src/components/Navbar.jsx
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import books from '../bookData';
-import { FaBookmark } from 'react-icons/fa';
-import { FaBars, FaTimes } from 'react-icons/fa'; // Import icons for the mobile menu
+import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { auth, db } from '../pages/firebaseConfig'; // Adjust the path according to your structure
+import { doc, getDoc } from 'firebase/firestore';
+import { FaBookmark, FaBars, FaTimes } from 'react-icons/fa';
+import { IoMdLogOut } from 'react-icons/io';
 
 const Navbar = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState([]);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // State to manage mobile menu
+  const [user, setUser] = useState(null);
+  const [userName, setUserName] = useState('');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
-  const handleSearchChange = (e) => {
-    const query = e.target.value;
-    setSearchQuery(query);
-    if (query) {
-      const results = books.filter((book) =>
-        book.title.toLowerCase().includes(query.toLowerCase())
-      );
-      setSearchResults(results);
-    } else {
-      setSearchResults([]);
-    }
-  };
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser) {
+        setUser(currentUser);
 
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
-    if (searchResults.length > 0) {
-      navigate(`/books/${searchResults[0].id}`);
-    }
-  };
+        // Fetch user data from Firestore
+        const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          setUserName(userData.firstName  );
+        } else {
+          console.error('No user data found in Firestore.');
+        }
+      } else {
+        setUser(null);
+        setUserName('');
+      }
+    });
 
-  const handleResultClick = (bookId) => {
-    navigate(`/books/${bookId}`);
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      alert('Logged out successfully.');
+      navigate('/login');
+    } catch (error) {
+      console.error('Error logging out:', error);
+      alert('Logout failed: ' + error.message);
+    }
   };
 
   const toggleMobileMenu = () => {
@@ -46,7 +56,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="p-4 flex flex-col md:flex-row justify-between items-center bg-white shadow-md">
+  <nav className="p-4 flex flex-col md:flex-row justify-between items-center bg-[#F4F5F9] shadow-md">
       <div className="flex justify-between items-center w-full md:w-auto">
         <Link to="/" className="text-2xl font-bold cinzel-decorative-bold">
           Bookify
@@ -60,67 +70,55 @@ const Navbar = () => {
       </div>
       
       <div className={`md:flex md:items-center md:space-x-6 w-full md:w-auto ${isMobileMenuOpen ? 'block' : 'hidden'} md:block`}>
-        <form onSubmit={handleSearchSubmit} className="relative flex items-center w-full md:w-[500px] mt-4 md:mt-0">
-          <input
-            type="text"
-            placeholder="Search..."
-            value={searchQuery}
-            onChange={handleSearchChange}
-            className="p-2 rounded border border-gray-600 focus:outline-none w-full"
-          />
-          {searchResults.length > 0 && (
-            <ul className="absolute top-full left-0 mt-2 w-full bg-white text-gray-800 border border-gray-300 rounded-lg shadow-lg z-10">
-              {searchResults.map((book) => (
-                <li
-                  key={book.id}
-                  onClick={() => handleResultClick(book.id)}
-                  className="cursor-pointer p-2 hover:bg-gray-100"
-                >
-                  <p>{book.title}</p>
-                </li>
-              ))}
-            </ul>
-          )}
-        </form>
-        
-        <div className="flex flex-col md:flex-row md:items-center mt-4 md:mt-0 gap-3">
-          <Link
-            to="/"
-            onClick={closeMobileMenu}
-            className={`text-lg mulish-regular ${location.pathname === '/' ? 'bg-gray-800 text-white px-2 py-1 rounded-full' : ''} md:ml-6`}
-          >
-            Home
-          </Link>
-          <Link
-            to="/about"
-            onClick={closeMobileMenu}
-            className={`text-lg mulish-regular ${location.pathname === '/about' ? 'bg-gray-800 text-white px-2 py-1 rounded-full' : ''} md:ml-6`}
-          >
-            About
-          </Link>
-          <Link
-            to="/login"
-            onClick={closeMobileMenu}
-            className={`text-lg mulish-regular ${location.pathname === '/login' ? 'bg-gray-800 text-white px-2 py-1 rounded-full' : ''} md:ml-6`}
-          >
-            Login
-          </Link>
-
-          <Link
-            to="/signup"
-            onClick={closeMobileMenu}
-            className={`text-lg mulish-regular ${location.pathname === '/signup' ? 'bg-gray-800 text-white px-2 py-1 rounded-full' : ''} md:ml-6`}
-          >
-            Signup
-          </Link>
-          <Link
-            to="/bookmarks"
-            onClick={closeMobileMenu}
-            className={`text-lg mulish-regular flex items-center ${location.pathname === '/bookmarks' ? 'bg-gray-800 text-white px-2 py-1 rounded-full' : ''} md:ml-6`}
-          >
-            <FaBookmark className="ml-1" />
-          </Link>
-        </div>
+        <Link
+          to="/"
+          onClick={closeMobileMenu}
+          className={`text-lg mulish-regular ${location.pathname === '/' ? 'bg-gray-800 text-white px-2 py-1 rounded-full' : ''} md:ml-6`}
+        >
+          Home
+        </Link>
+        <Link
+          to="/about"
+          onClick={closeMobileMenu}
+          className={`text-lg mulish-regular ${location.pathname === '/about' ? 'bg-gray-800 text-white px-2 py-1 rounded-full' : ''} md:ml-6`}
+        >
+          About
+        </Link>
+        {user ? (
+          <div className="flex items-center gap-x-4">
+            <p className="text-lg mulish-regular">{`Hello, ${userName}`}</p>
+            <button
+              onClick={handleLogout}
+              className=" text-xl text-red-600"
+            >
+              <IoMdLogOut />
+            </button>
+          </div>
+        ) : (
+          <>
+            <Link
+              to="/login"
+              onClick={closeMobileMenu}
+              className={`text-lg mulish-regular ${location.pathname === '/login' ? 'bg-gray-800 text-white px-2 py-1 rounded-full' : ''} md:ml-6`}
+            >
+              Login
+            </Link>
+            <Link
+              to="/signup"
+              onClick={closeMobileMenu}
+              className={`text-lg mulish-regular ${location.pathname === '/signup' ? 'bg-gray-800 text-white px-2 py-1 rounded-full' : ''} md:ml-6`}
+            >
+              Signup
+            </Link>
+          </>
+        )}
+        <Link
+          to="/bookmarks"
+          onClick={closeMobileMenu}
+          className={`text-lg mulish-regular flex items-center ${location.pathname === '/bookmarks' ? 'bg-gray-800 text-white px-2 py-1 rounded-full' : ''} md:ml-6`}
+        >
+          <FaBookmark className="ml-1" />
+        </Link>
       </div>
     </nav>
   );

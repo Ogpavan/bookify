@@ -6,6 +6,10 @@ html {
   scroll-behavior: smooth;
 }
 
+body{
+  background-color:#F4F5F9;
+}
+
 .cinzel-decorative-regular {
     font-family: "Cinzel Decorative", serif;
     font-weight: 400;
@@ -28,6 +32,12 @@ html {
     font-family: "Mulish", sans-serif;
     font-optical-sizing: auto;
     font-weight: 200;
+    font-style: normal;
+  }
+  .mulish-bold{
+    font-family: "Mulish", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: 700;
     font-style: normal;
   }
   .mulish-light {

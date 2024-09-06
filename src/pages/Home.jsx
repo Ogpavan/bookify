@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { MdOutlineKeyboardDoubleArrowRight } from 'react-icons/md';
+import Loader from '../components/Loader';
 
 const Home = () => {
   const [booksByGenre, setBooksByGenre] = useState({});
@@ -38,7 +39,7 @@ const Home = () => {
   }, []);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <div><Loader /></div>;
   }
 
   if (error) {
@@ -48,11 +49,11 @@ const Home = () => {
   return ( <div>
     <div className="relative">
       <img
-        src="https://subsolardesigns.com/odrin/demo1/wp-content/uploads/sites/8/2017/08/header-e1502802357504.jpg"
+        src="https://trumpwallpapers.com/wp-content/uploads/Book-Wallpaper-24-1920-x-1080.jpg"
         alt="Header"
-        className="w-full h-[80vh] object-cover"
+        className="w-full h-[80vh] object-cover blur-[1px]"
       />
-      <div className="absolute inset-0 bg-black opacity-60"></div>
+      <div className="absolute inset-0 bg-black opacity-60 "></div>
       <div className="absolute inset-0 flex items-center flex-col gap-3 justify-center text-center text-white">
         <h1 className="text-5xl md:text-6xl font-bold cinzel-decorative-bold">Welcome</h1>
         <p className="mt-2 text-sm w-[80%] md:w-auto md:text-lg font-light text-wrap">
@@ -76,7 +77,7 @@ const Home = () => {
             </span>
           </Link>
         </div>
-        <div className='flex gap-x-10 mt-16 cinzel-decorative-regular text-xl'>
+        <div className='flex flex-col gap-y-2 md:flex-row gap-x-10 md:mt-16 cinzel-decorative-regular md:text-xl px-10'>
         <p>4000+ Books</p>
         
         <p>1000+ Authors</p>
@@ -90,7 +91,7 @@ const Home = () => {
       {Object.keys(booksByGenre).map((genre) => (
         <div key={genre} className="mb-8  " id='genre'>
           <h2 className="text-2xl font-bold text-gray-800 mb-4">{genre}</h2>
-          <div className="flex overflow-x-auto space-x-4 overflow-hidden border p-2">
+          <div className="flex overflow-x-auto space-x-4 overflow-hidden  p-2">
             {booksByGenre[genre].map((book) => (
               <div key={book._id} className="flex-shrink-0 w-48 border p-4 flex flex-col space-y-4 bg-white shadow-md rounded">
                 <img
