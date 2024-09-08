@@ -5,8 +5,6 @@ import { FaBookmark, FaRegBookmark } from 'react-icons/fa';
 import BookAudioList from '../pages/BookAudioList';
 import Modal from '../components/Modal';  // Import the modal
 
- 
-
 const BookDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -65,19 +63,6 @@ const BookDetails = () => {
 
   const closeModal = () => {
     setShowModal(false); // Close the modal without deleting
-  };
-
-  // Function to parse and format the book content
-  const parseContent = (content) => {
-    if (!content) return '';
-
-    // Convert **bold** to <b>bold</b>
-    const bolded = content.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
-
-    // Convert _italic_ to <i>italic</i>
-    const italicized = bolded.replace(/_(.*?)_/g, '<i>$1</i>');
-
-    return italicized;
   };
 
   if (loading) {
@@ -139,12 +124,14 @@ const BookDetails = () => {
           </div>
           <p className="text-lg leading-relaxed mb-2 italic text-wrap md:w-3/4 text-center">"{book.description}"</p>
 
-          {/* Render parsed content */}
+          {/* Render content with pre-wrap */}
           <div className="prose max-w-none text-justify">
             <div className='h-24 overflow-auto mb-4'>
               <BookAudioList bookId={book._id} />
             </div>
-            <div dangerouslySetInnerHTML={{ __html: parseContent(book.content) }} />
+            <div style={{ whiteSpace: 'pre-wrap' }}>
+              {book.content}
+            </div>
           </div>
 
           {/* Delete Button for Admin */}
@@ -170,5 +157,3 @@ const BookDetails = () => {
 };
 
 export default BookDetails;
-
- 

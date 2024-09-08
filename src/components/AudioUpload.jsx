@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { getFirestore, collection, addDoc, deleteDoc, doc, query, where, getDocs } from 'firebase/firestore';
-import axios from 'axios'; // Import axios to make API requests
+import axios from 'axios';
 import BookAudioList from '../pages/BookAudioList';
+import Modal from '../components/Modal';
 
 const AudioUpload = () => {
   const [audioFile, setAudioFile] = useState(null);
@@ -10,15 +11,19 @@ const AudioUpload = () => {
   const [description, setDescription] = useState('');
   const [uploading, setUploading] = useState(false);
   const [audioUrl, setAudioUrl] = useState(null);
-  const [books, setBooks] = useState([]);  // For storing the list of books
-  const [selectedBookId, setSelectedBookId] = useState(''); // To store the selected book ID
-  const [audios, setAudios] = useState([]); // To store the list of audios
+  const [books, setBooks] = useState([]);
+  const [selectedBookId, setSelectedBookId] = useState('');
+  const [audios, setAudios] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const [modalTitle, setModalTitle] = useState('');
+  const [modalMessage, setModalMessage] = useState('');
+  const [modalType, setModalType] = useState('');
+  const [selectedAudioId, setSelectedAudioId] = useState(''); // Track selected audio ID for deletion
 
   useEffect(() => {
-    // Fetch books from MongoDB via the backend API
     const fetchBooks = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/books'); // API endpoint
+        const response = await axios.get('http://localhost:5000/api/books');
         setBooks(response.data);
       } catch (error) {
         console.error('Error fetching books:', error);
@@ -29,7 +34,6 @@ const AudioUpload = () => {
   }, []);
 
   useEffect(() => {
-    // Fetch audios from Firestore when selectedBookId changes
     const fetchAudios = async () => {
       if (!selectedBookId) return;
 
@@ -51,45 +55,90 @@ const AudioUpload = () => {
     setAudioFile(e.target.files[0]);
   };
 
-  const handleUpload = async () => {
+  const handleUpload = () => {
     if (!audioFile || !title || !selectedBookId) {
-      alert("Please select a book, provide a title, and upload a file.");
+      setModalTitle('Upload Error');
+      setModalMessage('Please select a book, provide a title, and upload a file.');
+      setModalType('error');
+      setShowModal(true);
       return;
     }
 
-    setUploading(true);
-
-    try {
-      // Upload audio to Firebase Storage
-      const storage = getStorage();
-      const audioRef = ref(storage, `audio/${selectedBookId}/${audioFile.name}`);
-      await uploadBytes(audioRef, audioFile);
-      const url = await getDownloadURL(audioRef);
-      setAudioUrl(url);
-
-      // Save metadata to Firestore
-      await saveAudioMetadata(selectedBookId, url, title, description);
-
-      alert('Audio and metadata saved successfully');
-    } catch (error) {
-      console.error('Error uploading audio or saving metadata:', error);
-    }
-
-    setUploading(false);
+    setModalTitle('Confirm Upload');
+    setModalMessage('Are you sure you want to upload this audio?');
+    setModalType('confirmation');
+    setShowModal(true);
   };
 
-  // Function to save audio metadata in Firestore
+  const handleDelete = (audioId, audioUrl) => {
+    setSelectedAudioId(audioId);
+    setAudioUrl(audioUrl);
+
+    setModalTitle('Confirm Delete');
+    setModalMessage('Are you sure you want to delete this audio?');
+    setModalType('confirmation');
+    setShowModal(true);
+  };
+
+  const handleConfirm = async () => {
+    if (modalType === 'confirmation') {
+      if (audioFile) {
+        // Proceed with upload
+        try {
+          const storage = getStorage();
+          const audioRef = ref(storage, `audio/${selectedBookId}/${audioFile.name}`);
+          await uploadBytes(audioRef, audioFile);
+          const url = await getDownloadURL(audioRef);
+          setAudioUrl(url);
+
+          await saveAudioMetadata(selectedBookId, url, title, description);
+
+          setModalTitle('Upload Successful');
+          setModalMessage('Audio and metadata saved successfully.');
+          setModalType('success');
+        } catch (error) {
+          setModalTitle('Upload Error');
+          setModalMessage('Error uploading audio or saving metadata.');
+          setModalType('error');
+        }
+      } else if (selectedAudioId) {
+        // Handle delete operation
+        try {
+          const storage = getStorage();
+          const audioRef = ref(storage, audioUrl);
+          await deleteObject(audioRef);
+          const db = getFirestore();
+          await deleteDoc(doc(db, 'audios', selectedAudioId));
+
+          setAudios(audios.filter(audio => audio.id !== selectedAudioId));
+
+          setModalTitle('Delete Successful');
+          setModalMessage('Audio deleted successfully.');
+          setModalType('success');
+        } catch (error) {
+          setModalTitle('Delete Error');
+          setModalMessage('Error deleting audio.');
+          setModalType('error');
+        }
+      }
+    }
+    setShowModal(false);
+  };
+
+  const handleCancel = () => {
+    setShowModal(false);
+  };
+
   const saveAudioMetadata = async (bookId, audioUrl, title, description) => {
     const db = getFirestore();
     try {
       await addDoc(collection(db, 'audios'), {
-        bookId,  // Link the audio to the selected book
+        bookId,
         audioUrl,
         title,
         description,
         createdAt: new Date(),
       });
-      // Refresh the audio list
       const q = query(collection(db, 'audios'), where('bookId', '==', bookId));
       const querySnapshot = await getDocs(q);
       const audiosList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -99,30 +148,8 @@ const AudioUpload = () => {
     }
   };
 
-  const handleDelete = async (audioId, audioUrl) => {
-    if (!window.confirm('Are you sure you want to delete this audio?')) return;
-
-    try {
-      // Delete the audio file from Firebase Storage
-      const storage = getStorage();
-      const audioRef = ref(storage, audioUrl);
-      await deleteObject(audioRef);
-
-      // Remove metadata from Firestore
-      const db = getFirestore();
-      await deleteDoc(doc(db, 'audios', audioId));
-
-      // Refresh the audio list
-      setAudios(audios.filter(audio => audio.id !== audioId));
-
-      alert('Audio deleted successfully');
-    } catch (error) {
-      console.error('Error deleting audio:', error);
-    }
-  };
-
   return (
-    <div className='flex justify-center items-center '>
+    <div className='flex justify-center items-center'>
       <div className='md:grid flex flex-col justify-center items-center gap-y-5 mt-10 bg-white md:w-1/2 w-full px-5'>
         <h3 className='text-2xl font-bold text-center p-5'>Upload Audio</h3>
         <select
@@ -155,7 +182,7 @@ const AudioUpload = () => {
 
         <button
           className="mb-5 border rounded px-3 py-2 w-full bg-gradient-to-br from-blue-500 to-blue-700 text-white"
-          onClick={handleUpload} 
+          onClick={handleUpload}
           disabled={uploading}
         >
           {uploading ? 'Uploading...' : 'Upload'}
@@ -185,8 +212,16 @@ const AudioUpload = () => {
             ))}
           </ul>
         </div>
-        
       </div>
+
+      <Modal
+        show={showModal}
+        onClose={handleCancel}
+        onConfirm={handleConfirm}
+        title={modalTitle}
+        message={modalMessage}
+        type={modalType}
+      />
     </div>
   );
 };

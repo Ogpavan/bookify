@@ -26,9 +26,9 @@ const Login = () => {
         if (userDoc.exists()) {
           const userRole = userDoc.data().role;
           if (userRole === 'Reader') {
-            navigate('/reader-dashboard');
+            navigate('/');
           } else if (userRole === 'Writer') {
-            navigate('/writer-dashboard');
+            navigate('/admin');
           } else if (userRole === 'RJ') {
             navigate('/audio');
           } else {
@@ -43,7 +43,7 @@ const Login = () => {
         }
       } else {
         setModalTitle('Email Not Verified');
-        setModalMessage('Please verify your email before logging in.');
+        setModalMessage('Check Your Mailbox For Email Verification.');
         setShowModal(true);
       }
     } catch (error) {

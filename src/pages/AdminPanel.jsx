@@ -1,5 +1,7 @@
 import React, { useState, useRef } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import Modal from '../components/Modal'; // Import the Modal
 
 const AdminPanel = () => {
   const [title, setTitle] = useState('');
@@ -8,7 +10,11 @@ const AdminPanel = () => {
   const [content, setContent] = useState('');
   const [genre, setGenre] = useState('');
   const [author, setAuthor] = useState('');
+  const [showModal, setShowModal] = useState(false); // State to show modal
+  const [modalMessage, setModalMessage] = useState('');
+  const [isPublishing, setIsPublishing] = useState(false); // Track publishing status
   const fileInputRef = useRef(null);
+  const navigate = useNavigate(); // Use navigate for redirecting
 
   const handleImageUpload = async (file) => {
     const formData = new FormData();
@@ -31,35 +37,46 @@ const AdminPanel = () => {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = () => {
     if (title && description && coverImage && content && genre && author) {
-      try {
-        const response = await fetch('http://localhost:5000/api/books', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title, description, coverImage, content, genre, author }),
-        });
-
-        if (response.ok) {
-          alert("Book added successfully!");
-        } else {
-          alert("Failed to add book.");
-        }
-      } catch (error) {
-        console.error('Error adding book', error);
-        alert('Failed to add book.');
-      }
+      setModalMessage('Do you want to publish this book?');
+      setShowModal(true); // Show the confirmation modal
     } else {
-      alert("Please fill all fields.");
+      setModalMessage('Please fill all fields.');
+      setShowModal(true); // Show the error modal
     }
   };
 
+  const handleConfirmPublish = async () => {
+    setShowModal(false); // Close the modal when the user confirms
+
+    try {
+      const response = await fetch('http://localhost:5000/api/books', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, description, coverImage, content, genre, author }),
+      });
+
+      if (response.ok) {
+       
+        setIsPublishing(true); // Set publishing status to true
+        navigate('/'); // Redirect to the homepage
+      } else {
+        alert('Failed to publish the book.');
+      }
+    } catch (error) {
+      console.error('Error publishing book', error);
+      alert('Failed to publish the book.');
+    }
+  };
+
+  const closeModal = () => setShowModal(false);
+
   return (
-    <div className="p-4  md:flex flex-col justify-center items-center">
+    <div className="p-4 md:flex flex-col justify-center items-center">
       <h2 className="text-3xl font-bold mb-4">Publish Book</h2>
-      <form onSubmit={handleSubmit} className="space-y-4 bg-white md:flex gap-x-5 border md:w-1/2 p-5">
-      <div>
+      <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }} className="space-y-4 bg-white md:flex gap-x-5 border md:w-1/2 p-5">
+        <div>
           <label htmlFor="coverImage" className="block text-lg">Cover Image</label>
           <div
             onDrop={(e) => {
@@ -85,63 +102,71 @@ const AdminPanel = () => {
         </div>
 
         <div className='flex flex-col gap-y-4 w-full'>
-        <div>
-          <label htmlFor="title" className="block text-lg">Title</label>
-          <input
-            type="text"
-            id="title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="border border-black rounded-sm p-2 w-full"
-            placeholder='e.g. "The Great Gatsby"'
-          />
-        </div>
-        <div>
-          <label htmlFor="author" className="block text-lg">Author</label>
-          <input
-            type="text"
-            id="author"
-            value={author}
-            onChange={(e) => setAuthor(e.target.value)}
-            className="border border-black rounded-sm p-2 w-full"
-            placeholder='e.g. "F. Scott Fitzgerald"'
-          />
-        </div>
-        <div>
-          <label htmlFor="description" className="block text-lg">Description</label>
-          <textarea
-            id="description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="border border-black rounded-sm p-2 w-full"
-            placeholder='e.g. "The classic novel about a man named Jay Gatsby and his love for the beautiful Daisy Buchanan."'
-          />
-        </div>
-       
-        <div>
-          <label htmlFor="genre">Genre</label>
-          <select id="genre" value={genre} onChange={(e) => setGenre(e.target.value)} className="border border-black rounded-sm p-2 w-full">
-            <option value="">Select Genre</option>
-            <option value="Fiction">Fiction</option>
-            <option value="Non-Fiction">Non-Fiction</option>
-            <option value="Fantasy">Fantasy</option>
-            <option value="Science">Science</option>
-            {/* Add more genres as needed */}
-          </select>
-        </div>
-        <div>
-          <label htmlFor="content" className="block text-lg">Content</label>
-          <textarea
-            id="content"
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            className="border border-black rounded-sm p-2 w-full"
-            placeholder='Paste Your Book Content Here'
-          />
-        </div>
-        <button type="submit" className="p-2 bg-blue-500 text-white rounded">Add Book</button>
+          <div>
+            <label htmlFor="title" className="block text-lg">Title</label>
+            <input
+              type="text"
+              id="title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="border border-black rounded-sm p-2 w-full"
+              placeholder='e.g. "The Great Gatsby"'
+            />
+          </div>
+          <div>
+            <label htmlFor="author" className="block text-lg">Author</label>
+            <input
+              type="text"
+              id="author"
+              value={author}
+              onChange={(e) => setAuthor(e.target.value)}
+              className="border border-black rounded-sm p-2 w-full"
+              placeholder='e.g. "F. Scott Fitzgerald"'
+            />
+          </div>
+          <div>
+            <label htmlFor="description" className="block text-lg">Description</label>
+            <textarea
+              id="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="border border-black rounded-sm p-2 w-full"
+              placeholder='e.g. "The classic novel about a man named Jay Gatsby and his love for the beautiful Daisy Buchanan."'
+            />
+          </div>
+          <div>
+            <label htmlFor="genre">Genre</label>
+            <select id="genre" value={genre} onChange={(e) => setGenre(e.target.value)} className="border border-black rounded-sm p-2 w-full">
+              <option value="">Select Genre</option>
+              <option value="Fiction">Fiction</option>
+              <option value="Non-Fiction">Non-Fiction</option>
+              <option value="Fantasy">Fantasy</option>
+              <option value="Science">Science</option>
+              {/* Add more genres as needed */}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="content" className="block text-lg">Content</label>
+            <textarea
+              id="content"
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              className="border border-black rounded-sm p-2 w-full"
+              placeholder='Paste Your Book Content Here'
+            />
+          </div>
+          <button type="submit" className="p-2 bg-blue-500 text-white rounded" disabled={isPublishing}>Add Book</button>
         </div>
       </form>
+
+      {/* Modal Component */}
+      <Modal
+        show={showModal}
+        onClose={closeModal}
+        title="Confirmation"
+        message={modalMessage}
+        onConfirm={handleConfirmPublish} // Call this when "Confirm" is clicked
+      />
     </div>
   );
 };

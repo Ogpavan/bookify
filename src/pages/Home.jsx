@@ -109,7 +109,7 @@ const Home = () => {
               {booksByGenre[genre].map((book) => (
                 <div
                   key={book._id}
-                  className="flex-shrink-0 w-48 border p-4 flex flex-col space-y-4 bg-white shadow-md rounded "
+                  className="flex-shrink-0 w-52 border p-4 flex flex-col space-y-4 bg-white shadow-md rounded "
                 >
                   <img
                     src={book.coverImage || "https://via.placeholder.com/150"}

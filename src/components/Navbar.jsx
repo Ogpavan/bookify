@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { auth, db } from '../pages/firebaseConfig'; // Adjust the path according to your structure
+import { auth, db } from '../pages/firebaseConfig';
 import { doc, getDoc } from 'firebase/firestore';
 import { FaBookmark, FaBars, FaTimes } from 'react-icons/fa';
 import { IoMdLogOut } from 'react-icons/io';
@@ -49,7 +49,6 @@ const Navbar = () => {
       navigate('/');
     } catch (error) {
       console.error('Error logging out:', error);
-      
     }
   };
 
@@ -70,20 +69,21 @@ const Navbar = () => {
   };
 
   return (
-    <nav className=" navbar p-4 flex flex-col md:flex-row justify-between items-center bg-[#F4F5F9] shadow-md">
-      <div className="flex justify-between items-center w-full md:w-auto">
+    <nav className="navbar p-4 flex flex-col md:flex-row justify-between items-center bg-[#F4F5F9] shadow-md  mx-auto">
+      <div className="flex justify-between items-center w-full md:w-auto ">
         <Link to="/" className="text-2xl font-bold cinzel-decorative-bold">
           Bookify
         </Link>
         <button
           className="text-2xl md:hidden focus:outline-none"
           onClick={toggleMobileMenu}
+          aria-label="Toggle menu"
         >
           {isMobileMenuOpen ? <FaTimes /> : <FaBars />}
         </button>
       </div>
-      <SearchBar/>
-      <div className={`md:flex md:items-center md:space-x-6 w-full md:w-auto ${isMobileMenuOpen ? 'block' : 'hidden'} md:block`}>
+      <div className={`grid gap-y-3 md:flex md:flex-row items-center w-full md:w-auto ${isMobileMenuOpen ? 'block' : 'hidden'} md:flex md:items-center md:space-x-6`}>
+        <SearchBar className="mb-4  md:mb-0  " />
         <Link
           to="/"
           onClick={closeMobileMenu}
@@ -101,12 +101,12 @@ const Navbar = () => {
         {user ? (
           <div className="flex items-center gap-x-4">
             <p className="text-lg mulish-regular">{`Hello, ${userName}`}</p>
-            {/* Conditionally render the dashboard link if user is a writer */}
+            {/* Conditionally render the dashboard link based on user role */}
             {userRole === 'Writer' && (
               <Link
                 to="/admin"
                 onClick={closeMobileMenu}
-                className={`text-lg mulish-regular ${location.pathname === '/dashboard' ? 'bg-gray-800 text-white px-2 py-1 rounded-full' : ''} md:ml-6`}
+                className={`text-lg mulish-regular ${location.pathname === '/admin' ? 'bg-gray-800 text-white px-2 py-1 rounded-full' : ''} md:ml-6`}
               >
                 Dashboard
               </Link>
@@ -115,12 +115,12 @@ const Navbar = () => {
               <Link
                 to="/audio"
                 onClick={closeMobileMenu}
-                className={`text-lg mulish-regular ${location.pathname === '/dashboard' ? 'bg-gray-800 text-white px-2 py-1 rounded-full' : ''} md:ml-6`}
+                className={`text-lg mulish-regular ${location.pathname === '/audio' ? 'bg-gray-800 text-white px-2 py-1 rounded-full' : ''} md:ml-6`}
               >
-                Dashboard
+                Audio
               </Link>
             )}
-              <button onClick={openLogoutModal} className="text-xl text-red-600">
+            <button onClick={openLogoutModal} className="text-xl text-red-600" aria-label="Logout">
               <IoMdLogOut />
             </button>
           </div>
@@ -156,7 +156,7 @@ const Navbar = () => {
         onClose={closeLogoutModal}
         title="Logout Confirmation"
         message="Are you sure you want to log out?"
-        onConfirm={handleLogout} // Call logout if user confirms
+        onConfirm={handleLogout}
       />
     </nav>
   );
