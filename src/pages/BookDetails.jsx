@@ -2,6 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useBookmarks } from '../context/BookmarkContext';
 import { FaBookmark, FaRegBookmark } from 'react-icons/fa';
+import BookAudioList from '../pages/BookAudioList';
+import Modal from '../components/Modal';  // Import the modal
+
+ 
 
 const BookDetails = () => {
   const { id } = useParams();
@@ -10,6 +14,7 @@ const BookDetails = () => {
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showModal, setShowModal] = useState(false); // State for modal visibility
 
   useEffect(() => {
     const fetchBook = async () => {
@@ -39,8 +44,7 @@ const BookDetails = () => {
   };
 
   const handleDelete = async () => {
-    const confirmDelete = window.confirm(`Are you sure you want to delete the book titled "${book.title}"?`);
-    if (!confirmDelete) return;
+    setShowModal(false); // Close the modal after confirmation
 
     try {
       const response = await fetch(`http://localhost:5000/api/books/${id}`, {
@@ -49,13 +53,21 @@ const BookDetails = () => {
       if (!response.ok) {
         throw new Error('Failed to delete the book');
       }
-      alert('Book deleted successfully');
-      navigate('/'); // Redirect to the homepage or books list after deletion
+      navigate('/'); // Redirect to the homepage after deletion
     } catch (error) {
       alert(`Error: ${error.message}`);
     }
   };
 
+  const openDeleteModal = () => {
+    setShowModal(true); // Open the modal
+  };
+
+  const closeModal = () => {
+    setShowModal(false); // Close the modal without deleting
+  };
+
+  // Function to parse and format the book content
   const parseContent = (content) => {
     if (!content) return '';
 
@@ -82,19 +94,17 @@ const BookDetails = () => {
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
-      <h1 className="text-5xl font-extrabold text-center mb-6">{book.title}</h1>
+      <h1 className="md:text-5xl text-3xl font-extrabold text-center mb-6">{book.title}</h1>
       <div className="flex flex-col lg:flex-row items-center lg:items-start lg:space-x-8">
         <img 
           src={book.coverImage} 
           alt={book.title} 
           className="w-60 h-80 object-cover shadow-lg mb-6 lg:mb-0" 
         />
-        <div className="flex-1">
-          <p className="text-lg leading-relaxed mb-2 text-justify">{book.description}</p>
-          
+        <div className="">
           <div className="mb-4">
             <p className="text-xl font-semibold">Author: {book.author}</p>
-            <div className="flex items-center justify-between">
+            <div className="flex md:items-center justify-between flex-col md:flex-row gap-y-4 md:gap-y-0">
               <div className='flex items-center'>
                 <p className="text-lg font-medium mr-2">Rating:</p>
                 <div className="flex space-x-1">
@@ -120,30 +130,45 @@ const BookDetails = () => {
               <button
                 onClick={handleBookmark}
                 className={`py-2 px-6 border rounded-lg transition-colors duration-300 flex justify-center items-center gap-2 ${
-                  isBookmarked(book._id) ? '' : ''
+                  isBookmarked(book._id) ? 'bg-yellow-200' : 'bg-gray-200'
                 }`}
               >
                 {isBookmarked(book._id) ? <FaBookmark /> : <FaRegBookmark />} {isBookmarked(book._id) ? 'Bookmarked' : "Bookmark"}
               </button>
             </div>
           </div>
+          <p className="text-lg leading-relaxed mb-2 italic text-wrap md:w-3/4 text-center">"{book.description}"</p>
 
           {/* Render parsed content */}
           <div className="prose max-w-none text-justify">
+            <div className='h-24 overflow-auto mb-4'>
+              <BookAudioList bookId={book._id} />
+            </div>
             <div dangerouslySetInnerHTML={{ __html: parseContent(book.content) }} />
           </div>
 
           {/* Delete Button for Admin */}
           <button
-            onClick={handleDelete}
+            onClick={openDeleteModal} // Show the modal when clicked
             className="mt-6 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors duration-300"
           >
             Delete Book
           </button>
         </div>
       </div>
+
+      {/* Modal for delete confirmation */}
+      <Modal
+        show={showModal}
+        onClose={closeModal}
+        onConfirm={handleDelete}
+        title="Delete Book"
+        message={`Are you sure you want to delete the book titled "${book.title}"?`}
+      />
     </div>
   );
 };
 
 export default BookDetails;
+
+ 

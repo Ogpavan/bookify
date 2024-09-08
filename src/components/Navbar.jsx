@@ -5,10 +5,14 @@ import { auth, db } from '../pages/firebaseConfig'; // Adjust the path according
 import { doc, getDoc } from 'firebase/firestore';
 import { FaBookmark, FaBars, FaTimes } from 'react-icons/fa';
 import { IoMdLogOut } from 'react-icons/io';
+import Modal from '../components/Modal';
+import SearchBar from './SearchBar';
 
 const Navbar = () => {
   const [user, setUser] = useState(null);
   const [userName, setUserName] = useState('');
+  const [userRole, setUserRole] = useState('');
+  const [showLogoutModal, setShowLogoutModal] = useState(false); 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -22,13 +26,15 @@ const Navbar = () => {
         const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
         if (userDoc.exists()) {
           const userData = userDoc.data();
-          setUserName(userData.firstName  );
+          setUserName(userData.firstName);
+          setUserRole(userData.role); // Assuming 'role' field exists in Firestore
         } else {
           console.error('No user data found in Firestore.');
         }
       } else {
         setUser(null);
         setUserName('');
+        setUserRole('');
       }
     });
 
@@ -39,11 +45,11 @@ const Navbar = () => {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      alert('Logged out successfully.');
-      navigate('/login');
+      closeLogoutModal();
+      navigate('/');
     } catch (error) {
       console.error('Error logging out:', error);
-      alert('Logout failed: ' + error.message);
+      
     }
   };
 
@@ -55,8 +61,16 @@ const Navbar = () => {
     setIsMobileMenuOpen(false);
   };
 
+  const openLogoutModal = () => {
+    setShowLogoutModal(true);
+  };
+
+  const closeLogoutModal = () => {
+    setShowLogoutModal(false);
+  };
+
   return (
-  <nav className="p-4 flex flex-col md:flex-row justify-between items-center bg-[#F4F5F9] shadow-md">
+    <nav className=" navbar p-4 flex flex-col md:flex-row justify-between items-center bg-[#F4F5F9] shadow-md">
       <div className="flex justify-between items-center w-full md:w-auto">
         <Link to="/" className="text-2xl font-bold cinzel-decorative-bold">
           Bookify
@@ -68,7 +82,7 @@ const Navbar = () => {
           {isMobileMenuOpen ? <FaTimes /> : <FaBars />}
         </button>
       </div>
-      
+      <SearchBar/>
       <div className={`md:flex md:items-center md:space-x-6 w-full md:w-auto ${isMobileMenuOpen ? 'block' : 'hidden'} md:block`}>
         <Link
           to="/"
@@ -87,10 +101,26 @@ const Navbar = () => {
         {user ? (
           <div className="flex items-center gap-x-4">
             <p className="text-lg mulish-regular">{`Hello, ${userName}`}</p>
-            <button
-              onClick={handleLogout}
-              className=" text-xl text-red-600"
-            >
+            {/* Conditionally render the dashboard link if user is a writer */}
+            {userRole === 'Writer' && (
+              <Link
+                to="/admin"
+                onClick={closeMobileMenu}
+                className={`text-lg mulish-regular ${location.pathname === '/dashboard' ? 'bg-gray-800 text-white px-2 py-1 rounded-full' : ''} md:ml-6`}
+              >
+                Dashboard
+              </Link>
+            )}
+            {userRole === 'RJ' && (
+              <Link
+                to="/audio"
+                onClick={closeMobileMenu}
+                className={`text-lg mulish-regular ${location.pathname === '/dashboard' ? 'bg-gray-800 text-white px-2 py-1 rounded-full' : ''} md:ml-6`}
+              >
+                Dashboard
+              </Link>
+            )}
+              <button onClick={openLogoutModal} className="text-xl text-red-600">
               <IoMdLogOut />
             </button>
           </div>
@@ -120,6 +150,14 @@ const Navbar = () => {
           <FaBookmark className="ml-1" />
         </Link>
       </div>
+
+      <Modal
+        show={showLogoutModal}
+        onClose={closeLogoutModal}
+        title="Logout Confirmation"
+        message="Are you sure you want to log out?"
+        onConfirm={handleLogout} // Call logout if user confirms
+      />
     </nav>
   );
 };

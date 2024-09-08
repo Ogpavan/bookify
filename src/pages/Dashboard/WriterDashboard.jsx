@@ -1,8 +1,11 @@
 import React from 'react'
+import { Link } from 'react-router-dom'
 
 function WriterDashboard() {
   return (
-    <div>WriterDashboard</div>
+    <div>WriterDashboard
+      <Link to="/admin">Add books</Link>
+    </div>
   )
 }
 

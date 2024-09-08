@@ -4,6 +4,7 @@ import { auth, db } from './firebaseConfig';
 import { setDoc, doc } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import { FcGoogle } from 'react-icons/fc';
+import Modal from '../components/Modal2'; // Import the Modal component
 
 const SignUp = () => {
   const [email, setEmail] = useState('');
@@ -11,6 +12,9 @@ const SignUp = () => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [role, setRole] = useState('');
+  const [showModal, setShowModal] = useState(false); // Modal visibility state
+  const [modalMessage, setModalMessage] = useState(''); // Message for modal
+  const [modalTitle, setModalTitle] = useState(''); // Title for modal
   const navigate = useNavigate();
 
   const handleSignUp = async (e) => {
@@ -21,7 +25,9 @@ const SignUp = () => {
       const user = userCredential.user;
 
       await sendEmailVerification(user);
-      alert('Verification email sent. Please check your inbox.');
+      setModalTitle('Email Verification Sent');
+      setModalMessage('A verification email has been sent to your inbox. Please verify your email before logging in.');
+      setShowModal(true);  // Show modal
       
       // Save the user data in Firestore
       await setDoc(doc(db, 'users', user.uid), {
@@ -31,11 +37,14 @@ const SignUp = () => {
         role,
       });
 
-      alert('User registered successfully! Please verify your email.');
-      navigate('/login');  // Redirect to login or a verification page
+      setModalTitle('Sign Up Success');
+      setModalMessage('User registered successfully! Please verify your email.');
+      setShowModal(true);  // Show modal for success
+      navigate('/login');  // Redirect to login or verification page after closing modal
     } catch (error) {
-      console.error('Error signing up:', error);
-      alert('Signup failed: ' + error.message);
+      setModalTitle('Sign Up Failed');
+      setModalMessage('Signup failed: ' + error.message);
+      setShowModal(true);  // Show modal for errors
     }
   };
 
@@ -45,25 +54,32 @@ const SignUp = () => {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
-      // Check if the user already exists in Firestore
-      const userDoc = await setDoc(doc(db, 'users', user.uid), {
+      // Save user data to Firestore
+      await setDoc(doc(db, 'users', user.uid), {
         firstName: user.displayName.split(' ')[0],
         lastName: user.displayName.split(' ').slice(1).join(' '),
         email: user.email,
-        role: role || 'Reader',  // Default role if not selected
+        role: role || 'Reader',  // Default to 'Reader' if not selected
       });
 
-      alert('User signed up successfully!');
-      navigate('/');  // Redirect to the home page or another page
+      setModalTitle('Google Sign Up Success');
+      setModalMessage('You have successfully signed up with Google!');
+      setShowModal(true);  // Show modal for success
+      navigate('/');  // Redirect to home page after closing modal
     } catch (error) {
-      console.error('Error with Google sign up:', error);
-      alert('Google sign up failed: ' + error.message);
+      setModalTitle('Google Sign Up Failed');
+      setModalMessage('Google sign-up failed: ' + error.message);
+      setShowModal(true);  // Show modal for errors
     }
+  };
+
+  const closeModal = () => {
+    setShowModal(false); // Close modal when the user clicks "OK"
   };
 
   return (
     <div className="md:mt-10 flex flex-col items-center justify-center w-full ">
-      <form onSubmit={handleSignUp} className="flex flex-col items-center justify-center border px-6 py-12 ">
+      <form onSubmit={handleSignUp} className="flex flex-col items-center justify-center border px-6 py-12 bg-white shadow-lg ">
         <h1 className="text-xl font-bold mb-4 w-full cinzel-decorative-bold">Bookify</h1>
         <p className="w-full text-3xl mulish-bold">Hi, Welcome to Bookify</p>
         <p className="mb-4 w-full text-gray-500 md:text-sm text-xs mulish-light">
@@ -79,7 +95,7 @@ const SignUp = () => {
         </button>
         <div className="mb-6 w-full text-gray-500 text-xs text-center mulish-light flex justify-center items-center gap-x-2">
           <div className="h-[0.1px] w-full bg-gray-300"></div>
-          <p className="text-nowrap">or SignUp with email</p>
+          <p className='text-xs text-gray-700 text-nowrap'>*Writer's and RJ's need to sign up with email*</p>
           <div className="h-[0.1px] w-full bg-gray-300"></div>
         </div>
         <div className="flex gap-x-2 flex-wrap ">
@@ -129,6 +145,9 @@ const SignUp = () => {
           Sign Up
         </button>
       </form>
+
+      {/* Modal */}
+      <Modal show={showModal} onClose={closeModal} title={modalTitle} message={modalMessage} />
     </div>
   );
 };

@@ -13,24 +13,27 @@ import SignUp from './pages/SignUp';
 import ReaderDashboard from './pages/Dashboard/ReaderDashboard';
 import WriterDashboard from './pages/Dashboard/WriterDashboard';
 import RJDashboard from './pages/Dashboard/RJDashboard';
-import { auth, db } from '../src/pages/firebaseConfig'; // Assuming firebaseConfig is correctly set up
+import { auth, db } from '../src/pages/firebaseConfig';
 import { getDoc, doc } from 'firebase/firestore';
+import AudioUpload from './components/AudioUpload';
 
 const App = () => {
+  const [user, setUser] = useState(null); // Store authenticated user
   const [userRole, setUserRole] = useState(null);
 
   useEffect(() => {
-    const fetchUserRole = async () => {
-      const user = auth.currentUser;
-      if (user) {
-        const userDoc = await getDoc(doc(db, 'users', user.uid));
+    const fetchUserData = async () => {
+      const currentUser = auth.currentUser;
+      if (currentUser) {
+        setUser(currentUser); // Set the authenticated user
+        const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
         if (userDoc.exists()) {
           setUserRole(userDoc.data().role);
         }
       }
     };
 
-    fetchUserRole();
+    fetchUserData();
   }, []);
 
   return (
@@ -44,20 +47,14 @@ const App = () => {
           <Route path="/about" element={<About />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />
-          {/* <Route
-            path="/dashboard"
-            element={
-              userRole === 'reader' ? <ReaderDashboard /> :
-              userRole === 'writer' ? <WriterDashboard /> :
-              userRole === 'RJ' ? <RJDashboard /> :
-              <Login /> // Redirect to login if role is undefined
-            }
-          /> */}
-          <Route path="/reader-dashboard" element={<ReaderDashboard />} />
+          
+         
           <Route path="/writer-dashboard" element={<WriterDashboard />} />
           <Route path="/rj-dashboard" element={<RJDashboard />} />
 
           <Route path="/admin" element={<AdminPanel />} />
+
+           <Route path='/audio' element={<AudioUpload />} />
         </Routes>
         <Footer />
       </Router>
