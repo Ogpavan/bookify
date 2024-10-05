@@ -45,7 +45,7 @@ const SearchBar = () => {
         value={searchQuery}
         onChange={handleSearch}
         placeholder="Search for books..."
-        className="border border-gray-800 rounded p-2 w-full"
+        className="shadow-lg rounded-full  p-2 text-black px-4 w-full outline-none"
       />
 
       {/* Dropdown for search results */}

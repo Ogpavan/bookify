@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, sendEmailVerification } from 'firebase/auth';
 import { auth, db } from './firebaseConfig';
 import { setDoc, doc } from 'firebase/firestore';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { FcGoogle } from 'react-icons/fc';
 import Modal from '../components/Modal2'; // Import the Modal component
 
@@ -12,6 +12,7 @@ const SignUp = () => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [role, setRole] = useState('');
+  const [agreeTerms, setAgreeTerms] = useState(false); // State for agreeing to terms
   const [showModal, setShowModal] = useState(false); // Modal visibility state
   const [modalMessage, setModalMessage] = useState(''); // Message for modal
   const [modalTitle, setModalTitle] = useState(''); // Title for modal
@@ -19,6 +20,12 @@ const SignUp = () => {
 
   const handleSignUp = async (e) => {
     e.preventDefault();
+    if (!agreeTerms) {
+      setModalTitle('Agreement Required');
+      setModalMessage('You must agree to the terms and conditions to sign up.');
+      setShowModal(true);
+      return;
+    }
     try {
       // Create the user in Firebase Authentication
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -27,8 +34,8 @@ const SignUp = () => {
       await sendEmailVerification(user);
       setModalTitle('Email Verification Sent');
       setModalMessage('A verification email has been sent to your inbox. Please verify your email before logging in.');
-      setShowModal(true);  // Show modal
-      
+      setShowModal(true);
+
       // Save the user data in Firestore
       await setDoc(doc(db, 'users', user.uid), {
         firstName,
@@ -39,12 +46,12 @@ const SignUp = () => {
 
       setModalTitle('Sign Up Success');
       setModalMessage('User registered successfully! Please verify your email.');
-      setShowModal(true);  // Show modal for success
-      navigate('/login');  // Redirect to login or verification page after closing modal
+      setShowModal(true);
+      navigate('/login');
     } catch (error) {
       setModalTitle('Sign Up Failed');
       setModalMessage('Signup failed: ' + error.message);
-      setShowModal(true);  // Show modal for errors
+      setShowModal(true);
     }
   };
 
@@ -59,17 +66,17 @@ const SignUp = () => {
         firstName: user.displayName.split(' ')[0],
         lastName: user.displayName.split(' ').slice(1).join(' '),
         email: user.email,
-        role: role || 'Reader',  // Default to 'Reader' if not selected
+        role: role || 'Reader', // Default to 'Reader' if not selected
       });
 
       setModalTitle('Google Sign Up Success');
       setModalMessage('You have successfully signed up with Google!');
-      setShowModal(true);  // Show modal for success
-      navigate('/');  // Redirect to home page after closing modal
+      setShowModal(true);
+      navigate('/');
     } catch (error) {
       setModalTitle('Google Sign Up Failed');
       setModalMessage('Google sign-up failed: ' + error.message);
-      setShowModal(true);  // Show modal for errors
+      setShowModal(true);
     }
   };
 
@@ -95,7 +102,7 @@ const SignUp = () => {
         </button>
         <div className="mb-6 w-full text-gray-500 text-xs text-center mulish-light flex justify-center items-center gap-x-2">
           <div className="h-[0.1px] w-full bg-gray-300"></div>
-          <p className='text-xs text-gray-700 text-nowrap'>*Writer's and RJ's need to sign up with email*</p>
+          <p className='text-xs text-gray-700 text-nowrap'>Or sign up with email</p>
           <div className="h-[0.1px] w-full bg-gray-300"></div>
         </div>
         <div className="flex gap-x-2 flex-wrap ">
@@ -138,12 +145,34 @@ const SignUp = () => {
           <option value="Writer">Writer</option>
           <option value="RJ">RJ</option>
         </select>
+
+        {/* Agree to Terms */}
+        <div className="flex items-center mb-6">
+          <input
+            type="checkbox"
+            id="agreeTerms"
+            checked={agreeTerms}
+            onChange={(e) => setAgreeTerms(e.target.checked)}
+            className="mr-2"
+          />
+          <label htmlFor="agreeTerms" className="text-xs text-gray-700">
+            I agree to the <Link to="/termsandconditions" className="text-blue-600">Terms and Conditions</Link>
+          </label>
+        </div>
+
         <button
           className="mb-4 border rounded px-3 py-2 w-full bg-gradient-to-br from-blue-500 to-blue-700 text-white"
           type="submit"
+          disabled={!agreeTerms} // Disable button if terms are not agreed
         >
           Sign Up
         </button>
+        <Link
+          to="/login"
+          className="text-gray-500 px-4 py-2 text-sm mulish-regular"
+        >
+          Already have an account? <span className="text-blue-600">Login Here</span>
+        </Link>
       </form>
 
       {/* Modal */}

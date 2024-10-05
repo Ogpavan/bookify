@@ -6,10 +6,7 @@ html {
   scroll-behavior: smooth;
 }
 
-body{
-  background-color:#F4F5F9;
-}
-
+ 
 
 
 
@@ -18,7 +15,7 @@ body{
 .navbar {
   position: sticky; /* Stick to the top */
   top: 0; /* Position it at the top */
-  background-color: #F4F5F9; /* Background color to cover content underneath */
+  background-color: white; /* Background color to cover content underneath */
   z-index: 1000; /* Ensure it stays on top of other elements */
   width: 100%; /* Full width of the viewport */
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Optional shadow for better visibility */
@@ -33,6 +30,7 @@ body{
   .cinzel-decorative-bold {
     font-family: "Cinzel Decorative", serif;
     font-weight: 700;
+    
     font-style: normal;
   }
   
@@ -60,3 +58,5 @@ body{
     font-weight: 50;
     font-style: normal;
   }
+
+  

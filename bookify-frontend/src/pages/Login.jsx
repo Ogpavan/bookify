@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { auth, db } from './firebaseConfig';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { doc, getDoc } from 'firebase/firestore';
 import { FcGoogle } from 'react-icons/fc';
 import Modal from '../components/Modal2';  // Import Modal component
@@ -134,7 +134,15 @@ const Login = () => {
         <button className="mb-4 border rounded px-3 py-2 w-full bg-gradient-to-br from-blue-500 to-blue-700 text-white" type="submit">
           Login
         </button>
+        <Link
+        to="/signup"
+        className="  text-gray-500  px-4 py-2 text-sm mulish-regular"
+      >
+        Don't have an account?<span className='text-blue-600'>Sign Up </span> 
+      </Link>
       </form>
+
+     
 
       {/* Modal */}
       <Modal show={showModal} onClose={closeModal} title={modalTitle} message={modalMessage} />
